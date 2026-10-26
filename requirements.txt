@@ -1,0 +1,10 @@
+# topo.py requirements (Python 3.8+)
+# Install:  pip install -r requirements.txt
+
+# Required: read the topology workbook
+openpyxl>=3.1
+
+# Optional: also write PNG and PDF next to the SVG / draw.io files.
+# On Windows, cairosvg also needs the Cairo library (e.g. install GTK3 runtime);
+# if it is missing, topo.py just skips PNG/PDF.
+# cairosvg>=2.7

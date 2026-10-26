@@ -1,0 +1,20 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Excel temp/lock files and backups
+~$*
+*.bak.xlsx
+
+# Optional renders (only produced when cairosvg is installed)
+setups/*.png
+setups/*.pdf
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
