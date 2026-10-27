@@ -11,6 +11,9 @@ __pycache__/
 # Lab setups (workbooks + diagrams) stay local - never committed
 setups/
 
+# Files produced by Claude (previews, scratch)
+Claude outputs/
+
 # Generated diagrams - never committed; rebuild with: python topo.py
 *.svg
 *.drawio

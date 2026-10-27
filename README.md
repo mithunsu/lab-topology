@@ -70,6 +70,7 @@ Diagrams are written next to the workbook. When drawing all workbooks at once, e
 | **Links** | One row per cable: `device_a`, `port_a`, `patch_a`, `device_b`, `port_b`, `patch_b`, `cable` (fiber / eth / dac), `speed`, `status` (active / planned / removed), `date_changed`, `notes`, `loop_side` |
 | **Roles** | Colour per connection kind (change colours only) |
 | **Cables** | Line width / style per cable type, and whether the speed is printed on the line |
+| **Info** (optional) | Two columns, `setting` / `value`: `title` and `subtitle` for the diagram (otherwise the file name is used) |
 
 You never type the connection kind. It is worked out from the two devices:
 
@@ -87,6 +88,14 @@ Line style:
 - **speed label** on fiber and DAC links (set per cable type in the Cables sheet)
 - **dotted** = a switch port is not recorded, **dashed** = planned
 - **`P#` inside a box** = patch-panel port at that end; a **bracket** = neighbouring links through the same patch port
+
+Layout:
+
+- DUTs are drawn as boxes on a grid (`tier` = row). A device with a blank tier is placed next to its neighbour.
+- Ixia ports are green bubbles next to the DUT they connect to (one bubble per Ixia chassis, with its IP in
+  small text - put the chassis IP in `emp_ip`); server / PAL ports are blue `Eth..` labels with an arrow.
+- Loopbacks, Ixia and server connections always go on an **outer** side of a DUT, never towards another switch.
+- DUT ↔ DUT lines are coloured by speed (≤10G navy, 40G orange, 100G red, 400G teal, ...).
 
 Day to day:
 
