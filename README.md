@@ -10,7 +10,7 @@ draw_topo/
 ├── topo.py               # draws the diagrams
 ├── upgrade_workbook.py   # converts an older-format workbook to the current columns
 ├── requirements.txt
-└── setups/               # one workbook per lab setup, diagrams are written next to it
+└── setups/               # one workbook per lab setup; diagrams are generated next to it (not in Git)
     ├── topology.xlsx  → topology.svg, topology.drawio
     └── jupiter_setup1.xlsx  → jupiter_setup1.svg, jupiter_setup1.drawio
 ```
@@ -65,6 +65,6 @@ git remote add origin <your repo URL>
 git push -u origin main
 ```
 
-`venv/`, Excel lock files (`~$*.xlsx`) and backups (`*.bak.xlsx`) are ignored by `.gitignore`.
-The generated `.svg` / `.drawio` files are committed on purpose so the diagrams can be viewed in the repo;
-re-run `python topo.py` before committing a workbook change.
+Only the scripts and the workbooks are versioned. `.gitignore` keeps out everything generated or local:
+diagrams (`.svg`, `.drawio`, `.png`, `.pdf`), `venv/`, Excel lock files (`~$*.xlsx`) and backups (`*.bak.xlsx`).
+After cloning, run `python topo.py` to build the diagrams.

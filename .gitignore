@@ -8,9 +8,11 @@ __pycache__/
 ~$*
 *.bak.xlsx
 
-# Optional renders (only produced when cairosvg is installed)
-setups/*.png
-setups/*.pdf
+# Generated diagrams - never committed; rebuild with: python topo.py
+*.svg
+*.drawio
+*.png
+*.pdf
 
 # OS / editor
 .DS_Store
