@@ -1,8 +1,8 @@
 # lab-topology
 
 Draw lab topology diagrams from an Excel list of devices and cables.
-Record the cabling in a workbook, run one command, and get an up-to-date diagram
-(`.svg` to view or share, plus a `.drawio` file to tweak by hand in draw.io / diagrams.net).
+Record the cabling in a workbook, run one command, and get an up-to-date diagram:
+an `.svg` to view or share, and a `.drawio` file to fine-tune by hand in draw.io / diagrams.net.
 
 ## What's in the repo
 
@@ -16,7 +16,7 @@ lab-topology/
     └── blank_topology.xlsx    # empty workbook (headers, dropdowns, colours) for a new setup
 ```
 
-Your own lab setups go in a **`setups/`** folder that you create locally. It is **not** in the repo:
+Your own lab setups live in a **`setups/`** folder that you create locally. It is **not** in the repo:
 `.gitignore` keeps the whole folder out, so your workbooks, IPs and generated diagrams never get pushed.
 
 ```
@@ -36,7 +36,8 @@ venv\Scripts\activate          # Linux/macOS: source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Needs Python 3.8+. The only required package is `openpyxl`.
+Needs Python 3.8+. The only required package is `openpyxl`
+(`cairosvg` is optional and adds `.png` / `.pdf` output).
 
 ## Quick start
 
@@ -56,52 +57,76 @@ dropdowns, colours and HowTo sheet but no rows. Fill in **Devices** first, then 
 
 ```
 python topo.py                                        # redraw every workbook in setups/
-python topo.py setups/my_lab.xlsx --title "My lab"    # one workbook, with a title
+python topo.py setups/my_lab.xlsx                     # just one workbook
+python topo.py setups/my_lab.xlsx --title "My lab"    # override the title
 python topo.py setups/my_lab.xlsx --show-planned      # also draw planned links (dashed)
 ```
 
-Diagrams are written next to the workbook. When drawing all workbooks at once, each title is the file name.
+Diagrams are written next to the workbook. The title comes from `--title`, else the workbook's **Info**
+sheet, else the file name. Warnings (port used twice, missing speed, ...) are printed while drawing.
 
 ## The workbook
 
 | Sheet | What goes in it |
 |---|---|
-| **Devices** | `name`, `kind` (switch / ixia / server / mgmt), `model`, `role`, `emp_ip`, `tier` (row in the diagram, 1 = top; left-to-right follows sheet order), `notes` |
-| **Links** | One row per cable: `device_a`, `port_a`, `patch_a`, `device_b`, `port_b`, `patch_b`, `cable` (fiber / eth / dac), `speed`, `status` (active / planned / removed), `date_changed`, `notes`, `loop_side` |
+| **Devices** | One row per device: `name`, `kind`, `model`, `role`, `emp_ip`, `tier`, `notes` |
+| **Links** | One row per cable: `device_a`, `port_a`, `patch_a`, `device_b`, `port_b`, `patch_b`, `cable`, `speed`, `status`, `date_changed`, `notes`, `loop_side` |
 | **Roles** | Colour per connection kind (change colours only) |
 | **Cables** | Line width / style per cable type, and whether the speed is printed on the line |
-| **Info** (optional) | Two columns, `setting` / `value`: `title` and `subtitle` for the diagram (otherwise the file name is used) |
+| **Info** (optional) | Two columns, `setting` / `value`: `title` and `subtitle` of the diagram |
+
+### Devices
+
+| `kind` | Use it for | `emp_ip` | Drawn as |
+|---|---|---|---|
+| `switch` | a DUT | EMP IP, shown in the name badge | box with an orange name badge |
+| `ixia` | an Ixia chassis (one row per chassis) | chassis IP, shown in the bubble | green bubble next to each DUT it connects to |
+| `server` | a traffic server / PAL host | – | blue `Eth..` port label with an arrow |
+| `mgmt` | management / OOB network | – | grey box |
+
+`tier` is the row in the diagram (1 = top); left-to-right follows the sheet order.
+Leave it blank and the device is placed next to the device it is cabled to.
+
+### Links
+
+- `cable` = `fiber`, `eth` or `dac`; `speed` = `10G`, `40G`, `100G`, `2X200G`, ...
+- `port_a` / `port_b`: the port at each end. For an Ixia or server end, this is the Ixia port (`7/1`) or NIC (`Eth24`).
+- `patch_a` / `patch_b` (optional): patch-panel port (`P5`) at each end.
+- `status` = `active` (default), `planned` (drawn only with `--show-planned`) or `removed` (kept for history, not drawn).
+- Loopback = the same device in `device_a` and `device_b`. `loop_side` (optional) picks the side; a side that
+  faces another switch is ignored.
 
 You never type the connection kind. It is worked out from the two devices:
 
 | Devices | Connection | Drawn as |
 |---|---|---|
-| switch – switch | dut-dut | navy |
-| switch – server | traffic | blue, arrow to the server |
-| switch – Ixia | ixia | green |
-| anything – mgmt | mgmt | grey |
-| same device on both ends | loopback | purple U-loop |
+| switch – switch | dut-dut | line coloured by speed: ≤10G navy, 25G teal-green, 40G orange, 100G red, 200G maroon, 400G teal |
+| switch – server | traffic | blue line with an arrow to the `Eth..` label |
+| switch – Ixia | ixia | green line to a green bubble (`IXIA`, port, chassis IP) |
+| anything – mgmt | mgmt | grey line |
+| same device on both ends | loopback | purple arc with the two ports on its legs |
 
-Line style:
+### How the diagram is laid out
 
-- **colour** = connection kind, **thickness / double line** = cable type (fiber thicker, DAC hollow double line)
-- **speed label** on fiber and DAC links (set per cable type in the Cables sheet)
-- **dotted** = a switch port is not recorded, **dashed** = planned
-- **`P#` inside a box** = patch-panel port at that end; a **bracket** = neighbouring links through the same patch port
+- DUTs are big boxes on a grid; port labels sit at the box edge on both ends of every link.
+- Loopbacks, Ixia bubbles and server ports always go on an **outer** side of a DUT, never towards another switch,
+  so a DUT ↔ DUT link can be added later without redrawing around them.
+- Each Ixia chassis gets its own bubble; several ports of one chassis on the same DUT side share a bubble,
+  with each Ixia port labelled on its line.
+- Speed labels appear on fiber and DAC links (set per cable type in the Cables sheet). DAC cables are drawn
+  as a hollow double line.
+- Dotted line = a switch port is not recorded; dashed line = planned.
+- `P#` inside a DUT box = patch-panel port at that end; a bracket = neighbouring links through the same patch port;
+  `P#` after an `Eth` label = server-side patch port.
+- The legend only lists what the diagram actually uses, plus the Ixia chassis IPs.
 
-Layout:
+### Day to day
 
-- DUTs are drawn as boxes on a grid (`tier` = row). A device with a blank tier is placed next to its neighbour.
-- Ixia ports are green bubbles next to the DUT they connect to (one bubble per Ixia chassis, with its IP in
-  small text - put the chassis IP in `emp_ip`); server / PAL ports are blue `Eth..` labels with an arrow.
-- Loopbacks, Ixia and server connections always go on an **outer** side of a DUT, never towards another switch.
-- DUT ↔ DUT lines are coloured by speed (≤10G navy, 40G orange, 100G red, 400G teal, ...).
-
-Day to day:
-
-- Add a connection: add a row in Links.
+- Add a connection: add a row in Links and run `python topo.py`.
 - Remove one: set `status` to `removed` (keeps the history) or delete the row.
 - Not cabled yet: set `status` to `planned` and draw with `--show-planned`.
+- Need to move something by hand: open the `.drawio` file in draw.io. It is regenerated on every run, so save
+  your hand-edited copy under another name.
 
 The script warns when a port is used by two links, and stops when a device name is unknown or a loopback
 uses the same port on both ends.
@@ -118,5 +143,6 @@ It keeps every row, writes a `.bak.xlsx` backup first, and is safe to run more t
 
 ## What Git ignores
 
-`setups/`, every generated diagram (`.svg`, `.drawio`, `.png`, `.pdf`), `venv/`, Excel lock files (`~$*`)
-and `.bak.xlsx` backups. Only the scripts and the two example workbooks are versioned.
+`setups/`, `Claude outputs/`, every generated diagram (`.svg`, `.drawio`, `.png`, `.pdf`), `venv/`,
+Excel lock files (`~$*`) and `.bak.xlsx` backups. Only the scripts, the README and the two example
+workbooks are versioned.
