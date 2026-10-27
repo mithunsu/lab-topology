@@ -10,7 +10,10 @@ draw_topo/
 ├── topo.py               # draws the diagrams
 ├── upgrade_workbook.py   # converts an older-format workbook to the current columns
 ├── requirements.txt
-└── setups/               # one workbook per lab setup; diagrams are generated next to it (not in Git)
+├── examples/
+│   ├── example_topology.xlsx   # fictional sample showing every feature
+│   └── blank_topology.xlsx     # empty workbook (headers, dropdowns, colours) for a new setup
+└── setups/               # local only (not in Git): one workbook per lab setup + its generated diagrams
     ├── topology.xlsx  → topology.svg, topology.drawio
     └── jupiter_setup1.xlsx  → jupiter_setup1.svg, jupiter_setup1.drawio
 ```
@@ -23,6 +26,20 @@ venv\Scripts\activate          # Windows   (Linux/macOS: source venv/bin/activat
 pip install -r requirements.txt
 ```
 
+## Quick start (after cloning)
+
+```
+mkdir setups
+copy examples\example_topology.xlsx setups\my_lab.xlsx     # Linux/macOS: cp examples/example_topology.xlsx setups/my_lab.xlsx
+python topo.py --show-planned                             # -> setups/my_lab.svg and setups/my_lab.drawio
+```
+
+Open `setups/my_lab.svg` in a browser to see what each row of the example produces (the `notes` column
+explains every example row), then replace the example devices and links with your own.
+
+Prefer to start empty? Copy `examples/blank_topology.xlsx` into `setups/` instead: it has the column headers,
+dropdowns, colours and HowTo sheet, and no rows. Fill in Devices first, then Links.
+
 ## Use
 
 ```
@@ -31,6 +48,7 @@ python topo.py setups/jupiter_setup1.xlsx --title "Jupiter AOSX - Setup 1"
 python topo.py setups/topology.xlsx --show-planned   # also draw planned links (dashed)
 ```
 
+`setups/` is not in Git - create it after cloning and put your workbooks there.
 New setup: copy an existing workbook in `setups/`, rename it, and edit it.
 
 ## Workbook
@@ -65,6 +83,5 @@ git remote add origin <your repo URL>
 git push -u origin main
 ```
 
-Only the scripts and the workbooks are versioned. `.gitignore` keeps out everything generated or local:
-diagrams (`.svg`, `.drawio`, `.png`, `.pdf`), `venv/`, Excel lock files (`~$*.xlsx`) and backups (`*.bak.xlsx`).
-After cloning, run `python topo.py` to build the diagrams.
+Only the scripts are versioned. `.gitignore` keeps out the whole `setups/` folder (workbooks and diagrams),
+any generated diagram (`.svg`, `.drawio`, `.png`, `.pdf`), `venv/`, Excel lock files and backups.

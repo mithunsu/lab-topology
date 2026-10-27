@@ -8,6 +8,9 @@ __pycache__/
 ~$*
 *.bak.xlsx
 
+# Lab setups (workbooks + diagrams) stay local - never committed
+setups/
+
 # Generated diagrams - never committed; rebuild with: python topo.py
 *.svg
 *.drawio

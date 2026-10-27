@@ -729,7 +729,8 @@ def main():
     paths = [Path(p) for p in a.workbooks] or sorted(
         p for p in (here / "setups").glob("*.xlsx") if not p.name.startswith("~$") and ".bak" not in p.name)
     if not paths:
-        sys.exit("No workbooks given and none found in setups/")
+        sys.exit("No workbooks given and none found in setups/.\n"
+                 "Start from the example:  mkdir setups  then copy examples/example_topology.xlsx into setups/")
     missing = [p for p in paths if not p.exists()]
     if missing:
         sys.exit("Workbook not found: " + ", ".join(map(str, missing)))
